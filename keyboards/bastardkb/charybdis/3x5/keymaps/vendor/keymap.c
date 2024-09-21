@@ -59,12 +59,46 @@ static uint16_t auto_pointer_layer_timer = 0;
 #    define SNIPING KC_NO
 #endif // !POINTING_DEVICE_ENABLE
 
+enum combos {
+  DQUO_COMBO,       // RT2 and RT3 => "
+  L_BRACKET_COMBO,  // LT3 and LM3 => [
+  R_BRACKET_COMBO,  // RT3 and RM3 => ]
+  L_PAREN_COMBO,    // LT2 and LM2 => (
+  R_PAREN_COMBO,    // RT2 and RM2 => )
+  L_BRACE_COMBO,    // LT1 and LM1 => {
+  R_BRACE_COMBO,    // RT1 and RM1 => }
+  L_ABK_COMBO,      // LT0 and LM0 => <
+  R_ABK_COMBO,      // LT0 and LM0 => >
+};
+
+const uint16_t PROGMEM dquo_combo[]      = {KC_C, KC_R, COMBO_END};
+const uint16_t PROGMEM l_bracket_combo[] = {KC_COMM, KC_O, COMBO_END};
+const uint16_t PROGMEM r_bracket_combo[] = {KC_R, KC_N, COMBO_END};
+const uint16_t PROGMEM l_paren_combo[]   = {KC_DOT, KC_E, COMBO_END};
+const uint16_t PROGMEM r_paren_combo[]   = {KC_C, KC_T, COMBO_END};
+const uint16_t PROGMEM l_brace_combo[]   = {KC_P, KC_U, COMBO_END};
+const uint16_t PROGMEM r_brace_combo[]   = {KC_G, KC_H, COMBO_END};
+const uint16_t PROGMEM l_abk_combo[]     = {KC_Y, KC_I, COMBO_END};
+const uint16_t PROGMEM r_abk_combo[]     = {KC_F, KC_D, COMBO_END};
+
+combo_t key_combos[] = {
+    [DQUO_COMBO]      = COMBO(dquo_combo, KC_DQUO),
+    [L_BRACKET_COMBO] = COMBO(l_bracket_combo, KC_LBRC),
+    [R_BRACKET_COMBO] = COMBO(r_bracket_combo, KC_RBRC),
+    [L_PAREN_COMBO]   = COMBO(l_paren_combo, KC_LPRN),
+    [R_PAREN_COMBO]   = COMBO(r_paren_combo, KC_RPRN),
+    [L_BRACE_COMBO]   = COMBO(l_brace_combo, KC_LCBR),
+    [R_BRACE_COMBO]   = COMBO(r_brace_combo, KC_RCBR),
+    [L_ABK_COMBO]     = COMBO(l_abk_combo, KC_LABK),
+    [R_ABK_COMBO]     = COMBO(r_abk_combo, KC_RABK),
+};
+
 // clang-format off
 /** \brief QWERTY layout (3 rows, 10 columns). */
 #define LAYOUT_LAYER_BASE                                                                     \
-       KC_Q,    KC_W,    KC_E,    KC_R,    KC_T,    KC_Y,    KC_U,    KC_I,    KC_O,    KC_P, \
-       KC_A,    KC_S,    KC_D,    KC_F,    KC_G,    KC_H,    KC_J,    KC_K,    KC_L, KC_QUOT, \
-       KC_Z,    KC_X,    KC_C,    KC_V,    KC_B,    KC_N,    KC_M, KC_COMM,  KC_DOT, KC_SLSH, \
+       KC_QUOT,    KC_COMM,    KC_DOT,    KC_P,    KC_Y,    KC_F,    KC_G,    KC_C,    KC_R,    KC_L, \
+       KC_A,    KC_O,    KC_E,    KC_U,    KC_I,    KC_D,    KC_H,    KC_T,    KC_N, KC_S, \
+       KC_SCLN,    KC_Q,    KC_J,    KC_K,    KC_X,    KC_B,    KC_M, KC_W,  KC_V, KC_Z, \
                       ESC_MED, SPC_NAV, TAB_FUN, ENT_SYM, BSP_NUM
 
 /** Convenience row shorthands. */

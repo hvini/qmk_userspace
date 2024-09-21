@@ -5,7 +5,7 @@
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 2 of the License, or
  * (at your option) any later version.
- *
+ *a 
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -14,23 +14,23 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 #pragma once
 
-#ifdef VIA_ENABLE
-/* VIA configuration. */
-#    define DYNAMIC_KEYMAP_LAYER_COUNT 7
-#endif // VIA_ENABLE
+#include "quantum.h"
 
-#ifndef __arm__
-/* Disable unused features. */
-#    define NO_ACTION_ONESHOT
-#endif // __arm__
+typedef enum {
+  ONESHOT_UP_UNQUEUED = 0,
+  ONESHOT_UP_QUEUED,
+  ONESHOT_DOWN_UNUSED,
+  ONESHOT_DOWN_USED,
+} oneshot_mod_state_t;
 
-/* Charybdis-specific features. */
+void oneshot_mod_pre(oneshot_mod_state_t* state, uint16_t mod, uint16_t trigger,
+                     uint16_t keycode, keyrecord_t* record);
 
-#ifdef POINTING_DEVICE_ENABLE
-// Automatically enable the pointer layer when moving the trackball.  See also:
-// - `CHARYBDIS_AUTO_POINTER_LAYER_TRIGGER_TIMEOUT_MS`
-// - `CHARYBDIS_AUTO_POINTER_LAYER_TRIGGER_THRESHOLD`
-// #define CHARYBDIS_AUTO_POINTER_LAYER_TRIGGER_ENABLE
-#endif // POINTING_DEVICE_ENABLE
+void oneshot_mod_post(oneshot_mod_state_t* state, uint16_t mod,
+                      uint16_t trigger, uint16_t keycode, keyrecord_t* record);
+
+bool is_oneshot_mod_cancel_key(uint16_t keycode);
+bool is_oneshot_mod_ignore_key(uint16_t keycode);

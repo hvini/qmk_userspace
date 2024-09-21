@@ -20,6 +20,8 @@
 #    include "timer.h"
 #endif // CHARYBDIS_AUTO_POINTER_LAYER_TRIGGER_ENABLE
 
+#include "delay.h"
+
 enum charybdis_keymap_layers {
     LAYER_BASE = 0,
     LAYER_FUNCTION,
@@ -59,18 +61,30 @@ static uint16_t auto_pointer_layer_timer = 0;
 #    define SNIPING KC_NO
 #endif // !POINTING_DEVICE_ENABLE
 
-enum combos { CV_LEFT, VB_RGHT, NM_UP, MCOMM_DOWN };
+enum combos {
+    DQUO_COMBO,      // RT2 and RT3 => "
+    L_BRACKET_COMBO, // LT3 and LM3 => [
+    R_BRACKET_COMBO, // RT3 and RM3 => ]
+    L_PAREN_COMBO,   // LT2 and LM2 => (
+    R_PAREN_COMBO,   // RT2 and RM2 => )
+    L_BRACE_COMBO,   // LT1 and LM1 => {
+    R_BRACE_COMBO,   // RT1 and RM1 => }
+    L_ABK_COMBO,     // LT0 and LM0 => <
+    R_ABK_COMBO,     // LT0 and LM0 => >
+};
 
-const uint16_t PROGMEM vb_combo[]    = {KC_V, KC_B, COMBO_END};
-const uint16_t PROGMEM cv_combo[]    = {KC_C, KC_V, COMBO_END};
-const uint16_t PROGMEM nm_combo[]    = {KC_N, KC_M, COMBO_END};
-const uint16_t PROGMEM mcomm_combo[] = {KC_M, KC_COMM, COMBO_END};
+const uint16_t PROGMEM dquo_combo[]      = {KC_C, KC_R, COMBO_END};
+const uint16_t PROGMEM l_bracket_combo[] = {KC_COMM, KC_O, COMBO_END};
+const uint16_t PROGMEM r_bracket_combo[] = {KC_R, KC_N, COMBO_END};
+const uint16_t PROGMEM l_paren_combo[]   = {KC_DOT, KC_E, COMBO_END};
+const uint16_t PROGMEM r_paren_combo[]   = {KC_C, KC_T, COMBO_END};
+const uint16_t PROGMEM l_brace_combo[]   = {KC_P, KC_U, COMBO_END};
+const uint16_t PROGMEM r_brace_combo[]   = {KC_G, KC_H, COMBO_END};
+const uint16_t PROGMEM l_abk_combo[]     = {KC_Y, KC_I, COMBO_END};
+const uint16_t PROGMEM r_abk_combo[]     = {KC_F, KC_D, COMBO_END};
 
 combo_t key_combos[] = {
-    [VB_RGHT]    = COMBO(vb_combo, KC_RIGHT),
-    [CV_LEFT]    = COMBO(cv_combo, KC_LEFT),
-    [NM_UP]      = COMBO(nm_combo, KC_UP),
-    [MCOMM_DOWN] = COMBO(mcomm_combo, KC_DOWN),
+    [DQUO_COMBO] = COMBO(dquo_combo, KC_DQUO), [L_BRACKET_COMBO] = COMBO(l_bracket_combo, KC_LBRC), [R_BRACKET_COMBO] = COMBO(r_bracket_combo, KC_RBRC), [L_PAREN_COMBO] = COMBO(l_paren_combo, KC_LPRN), [R_PAREN_COMBO] = COMBO(r_paren_combo, KC_RPRN), [L_BRACE_COMBO] = COMBO(l_brace_combo, KC_LCBR), [R_BRACE_COMBO] = COMBO(r_brace_combo, KC_RCBR), [L_ABK_COMBO] = COMBO(l_abk_combo, KC_LABK), [R_ABK_COMBO] = COMBO(r_abk_combo, KC_RABK),
 };
 
 // clang-format off
@@ -83,7 +97,7 @@ combo_t key_combos[] = {
 
 /** Convenience row shorthands. */
 #define _______________DEAD_HALF_ROW_______________ XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX
-#define ______________HOME_ROW_GACS_L______________ KC_LGUI, KC_LALT, KC_LCTL, KC_LSFT, XXXXXXX
+#define ______________HOME_ROW_GACS_L______________ OSM_L_GUI, OSM_L_ALT, OSM_L_CTRL, OSM_L_SHFT, XXXXXXX
 #define ______________HOME_ROW_GACS_R______________ XXXXXXX, KC_LSFT, KC_LCTL, KC_LALT, KC_LGUI
 
 /*
@@ -185,8 +199,8 @@ combo_t key_combos[] = {
     ...)                                                               \
              L00,         L01,         L02,         L03,         L04,  \
              R05,         R06,         R07,         R08,         R09,  \
-      LGUI_T(L10), LALT_T(L11), LCTL_T(L12), LSFT_T(L13),        L14,  \
-             R15,  RSFT_T(R16), RCTL_T(R17), LALT_T(R18), RGUI_T(R19), \
+      LGUI_T(L10),        L11,         L12,         L13,         L14,  \
+             R15,         R16,         R17,         R18,  RGUI_T(R19), \
       __VA_ARGS__
 #define HOME_ROW_MOD_GACS(...) _HOME_ROW_MOD_GACS(__VA_ARGS__)
 
@@ -235,10 +249,6 @@ report_mouse_t pointing_device_task_user(report_mouse_t mouse_report) {
     if (abs(mouse_report.x) > CHARYBDIS_AUTO_POINTER_LAYER_TRIGGER_THRESHOLD || abs(mouse_report.y) > CHARYBDIS_AUTO_POINTER_LAYER_TRIGGER_THRESHOLD) {
         if (auto_pointer_layer_timer == 0) {
             layer_on(LAYER_POINTER);
-#        ifdef RGB_MATRIX_ENABLE
-            rgb_matrix_mode_noeeprom(RGB_MATRIX_NONE);
-            rgb_matrix_sethsv_noeeprom(HSV_GREEN);
-#        endif // RGB_MATRIX_ENABLE
         }
         auto_pointer_layer_timer = timer_read();
     }
@@ -249,9 +259,6 @@ void matrix_scan_user(void) {
     if (auto_pointer_layer_timer != 0 && TIMER_DIFF_16(timer_read(), auto_pointer_layer_timer) >= CHARYBDIS_AUTO_POINTER_LAYER_TRIGGER_TIMEOUT_MS) {
         auto_pointer_layer_timer = 0;
         layer_off(LAYER_POINTER);
-#        ifdef RGB_MATRIX_ENABLE
-        rgb_matrix_mode_noeeprom(RGB_MATRIX_DEFAULT_MODE);
-#        endif // RGB_MATRIX_ENABLE
     }
 }
 #    endif // CHARYBDIS_AUTO_POINTER_LAYER_TRIGGER_ENABLE
@@ -264,8 +271,24 @@ layer_state_t layer_state_set_user(layer_state_t state) {
 #    endif // CHARYBDIS_AUTO_SNIPING_ON_LAYER
 #endif     // POINTING_DEVICE_ENABLE
 
-#ifdef RGB_MATRIX_ENABLE
-// Forward-declare this helper function since it is defined in
-// rgb_matrix.c.
-void rgb_matrix_update_pwm_buffers(void);
-#endif
+bool is_oneshot_mod_cancel_key(uint16_t keycode) {
+    switch (keycode) {
+        case ESC_MED:
+            return true;
+        default:
+            return false;
+    }
+}
+
+bool is_oneshot_mod_ignore_key(uint16_t keycode) {
+    switch (keycode) {
+        case SPC_NAV:
+        case OSM_L_ALT:
+        case OSM_L_CTRL:
+        case OSM_L_GUI:
+        case OSM_L_SHFT:
+            return true;
+        default:
+            return false;
+    }
+}
